@@ -3,8 +3,11 @@ import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:realtime_coin/core/constants/app_colors.dart';
 import 'package:realtime_coin/core/network/websocket_manager.dart';
 import 'package:realtime_coin/core/utils/date_utils.dart';
+import 'package:realtime_coin/core/widgets/app_text.dart';
 import 'package:realtime_coin/features/home/service/home_service.dart';
 import 'package:realtime_coin/features/home/view_model/home_view_model.dart';
+import 'package:realtime_coin/features/home/widgets/title_card_section.dart';
+import 'package:realtime_coin/features/home_edit/view/home_edit_view.dart';
 
 class HomeView extends StatefulWidget {
   const HomeView({super.key});
@@ -38,26 +41,29 @@ class _HomeViewState extends State<HomeView> {
         actionsPadding: EdgeInsetsDirectional.only(end: 16),
         title: Column(
           children: [
-            Text(
-              "Sayfam",
-              style: TextStyle(
-                color: Color.fromRGBO(247, 147, 26, 1),
-                fontSize: 25,
-              ),
+            AppText(
+              text: "Sayfam",
+              color: _Constants.titleTextColor,
+              style: AppTextStyle.h2,
             ),
-            Text(
-              DateUtilsHelper.today(context),
-              style: const TextStyle(
-                color: Color.fromRGBO(247, 147, 26, 1),
-                fontSize: 15,
-              ),
+            AppText(
+              text: DateUtilsHelper.today(context),
+              color: _Constants.titleTextColor,
+              style: AppTextStyle.titleS,
             ),
           ],
         ),
         leading: Icon(Icons.menu, color: Color.fromRGBO(247, 147, 26, 1)),
-
         actions: [
-          Icon(Icons.edit, color: Color.fromRGBO(247, 147, 26, 1)),
+          IconButton(
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const HomeEditView()),
+              );
+            },
+            icon: Icon(Icons.edit, color: Color.fromRGBO(247, 147, 26, 1)),
+          ),
           SizedBox(width: 16),
           Icon(Icons.cabin, color: Color.fromRGBO(247, 147, 26, 1)),
         ],
@@ -65,52 +71,12 @@ class _HomeViewState extends State<HomeView> {
       body: Column(
         children: [
           Padding(
-            padding: const EdgeInsetsDirectional.only(start: 8, end: 8 , top: 8),
-            child: Card(
-            color: AppColors.secondary ,
-              child: ListTile(
-                leading: Text("Sembol", style: TextStyle(fontSize: 16, color: Color.fromRGBO(247, 147, 26, 1))),
-                trailing: Container(
-                  height: 50,
-                  width: 270,
-                //  color: Colors.blue,
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    mainAxisAlignment: MainAxisAlignment.spaceAround,
-                    children: [
-                      Container(
-                        height: 25,
-                        width: 120,
-                        child: Align(
-                          child: Text("İşlem Hacmi", style: TextStyle(fontSize: 16, color: Color.fromRGBO(247, 147, 26, 1))),
-                        ),
-                      ),
-                      Container(
-                        height: 25,
-                        width: 65,
-                        child: Align(
-                          child: Text(
-                            "Değişim",
-                            style: TextStyle(fontSize: 16, color: Color.fromRGBO(247, 147, 26, 1)),
-                          ),
-                        ),
-                      ),
-                      Container(
-                        height: 25,
-                        width: 65,
-                        child: Align(
-                          child: Text("Fiyat", style: TextStyle(fontSize: 16 , color: Color.fromRGBO(247, 147, 26, 1))),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
+            padding: const EdgeInsetsDirectional.only(start: 8, end: 8, top: 8),
+            child: TitleCardSection(),
           ),
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16 , vertical: 8),
-            child: const Divider(height: 1, color: Color.fromRGBO(247, 147, 26, 1)),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            child: const Divider(height: 1, color: _Constants.dividerColor),
           ),
           Expanded(
             child: Observer(
@@ -286,5 +252,9 @@ class _HomeViewState extends State<HomeView> {
 class _Constants {
   const _Constants._();
 
+  // Colors
+  static const Color titleTextColor = AppColors.primary;
+  static const Color textColor = AppColors.textPrimary;
+  static const Color dividerColor = AppColors.primary;
   static const Color appBarBackgroundColor = AppColors.secondary;
 }
