@@ -1,5 +1,5 @@
 import 'package:realtime_coin/core/constants/api_constants.dart';
-import 'package:realtime_coin/core/network/websocket_manager.dart';
+import 'package:realtime_coin/core/network/binance_websocket_manager.dart';
 
 abstract class IHomeService {
   void listenToTickers({

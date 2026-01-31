@@ -15,6 +15,7 @@ class AppColors {
   // Background and Card Colors
   static const Color scaffoldBg = Color.fromARGB(255, 14, 14, 17);
   static const Color cardBg = Color.fromRGBO(247, 147, 26, 1); 
+  static const Color borderColor = Color.fromARGB(255, 36, 22, 54);
   
   // Text Colors
   static const Color textPrimary = Colors.white;

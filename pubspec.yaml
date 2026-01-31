@@ -47,6 +47,7 @@ dependencies:
   web_socket_channel: ^3.0.3
   get_it: ^9.2.0
   flutter_screenutil: ^5.9.3
+  dio: ^5.9.1
 
 dev_dependencies:
   flutter_test:

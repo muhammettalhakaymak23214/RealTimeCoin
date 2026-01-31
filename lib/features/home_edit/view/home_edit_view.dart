@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:realtime_coin/core/constants/app_colors.dart';
+import 'package:realtime_coin/core/services/cache/local_storage_service.dart';
 import 'package:realtime_coin/core/widgets/app_text.dart';
+import 'package:realtime_coin/features/add_symbol/view/add_symbol_view.dart';
 
 class HomeEditView extends StatefulWidget {
   const HomeEditView({super.key});
@@ -10,6 +12,27 @@ class HomeEditView extends StatefulWidget {
 }
 
 class _HomeEditViewState extends State<HomeEditView> {
+
+  List<String> symbols = [];
+
+  @override
+  void initState() {
+    super.initState();
+  
+    _loadSymbols();
+  }
+
+  void _loadSymbols() {
+    setState(() {
+      symbols = LocalStorageService.instance.getSelectedSymbols();
+    });
+  }
+
+  void _removeSymbol(String symbol) async {
+    await LocalStorageService.instance.deleteSymbol(symbol);
+    _loadSymbols(); // Listeyi güncelle
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -33,7 +56,14 @@ class _HomeEditViewState extends State<HomeEditView> {
           child: Padding(
             padding: const EdgeInsets.all(16.0),
             child: ElevatedButton(
-              onPressed: () {},
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const AddSymbolView(),
+                  ),
+                );
+              },
               style: OutlinedButton.styleFrom(
                 backgroundColor: AppColors.primary,
                 side: BorderSide(color: AppColors.scaffoldBg, width: 0.5),
@@ -44,8 +74,8 @@ class _HomeEditViewState extends State<HomeEditView> {
               ),
               child: AppText(
                 text: "Sembol Ekle",
-                color: AppColors.secondary,
-                style: AppTextStyle.titleM,
+                color: AppColors.textPrimary,
+                style: AppTextStyle.titleL,
                 fontWeight: FontWeight.w900,
               ),
             ),
@@ -56,24 +86,77 @@ class _HomeEditViewState extends State<HomeEditView> {
       body: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
         child: ListView.separated(
+      
+          itemCount: symbols.length,
+
           itemBuilder: (context, index) {
+       
+            final String currentSymbol = symbols[index];
+
             return Card(
-              color: AppColors.cardBg,
+              borderOnForeground: true,
+              color: AppColors.secondary,
               child: ListTile(
-                leading: AppText(
-                  text: "AGBCGH",
-                  color: AppColors.secondary,
-                  fontWeight: FontWeight.w900,
-                  style: AppTextStyle.titleM,
+                leading: Container(
+                  width: 130,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+                    children: [
+                      Container(
+                        height: 12.5,
+                        width: 12.5,
+                        decoration: BoxDecoration(
+                          color: AppColors.scaffoldBg,
+                          borderRadius: BorderRadius.circular(50),
+                        ),
+                      ),
+                      const SizedBox(width: 17),
+                      Container(
+                        height: 30,
+                        width: 100,
+                        decoration: BoxDecoration(
+                          color: AppColors.primary,
+                          borderRadius: BorderRadius.circular(10),
+                          border: Border.all(
+                            width: 1.5,
+                            color: const Color.fromARGB(255, 0, 0, 0),
+                          ),
+                        ),
+                        child: Center(
+                          child: AppText(
+                       
+                            text: currentSymbol,
+                            color: AppColors.textPrimary,
+                            fontWeight: FontWeight.w900,
+                            style: AppTextStyle.titleM,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-                trailing: Icon(Icons.remove),
+                trailing: GestureDetector(
+                  onTap: ()  {
+                    _removeSymbol(currentSymbol);
+                  },
+                  child: Container(
+                    height: 25,
+                    width: 25,
+                    decoration: BoxDecoration(
+                      color: AppColors.textPrimary,
+                      border: Border.all(
+                        color: const Color.fromARGB(255, 0, 0, 0),
+                        width: 1.5,
+                      ),
+                      borderRadius: BorderRadius.circular(50),
+                    ),
+                    child: Icon(Icons.remove, color: AppColors.error, size: 20),
+                  ),
+                ),
               ),
             );
           },
-          separatorBuilder: (context, index) {
-            return SizedBox(height: 4 );
-          },
-          itemCount: 10,
+          separatorBuilder: (context, index) => const SizedBox(height: 4),
         ),
       ),
     );

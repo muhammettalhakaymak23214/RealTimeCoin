@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:hive_flutter/adapters.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:realtime_coin/core/constants/app_colors.dart';
+import 'package:realtime_coin/core/services/navigation/navigation_service.dart';
 import 'package:realtime_coin/features/navigation/view/main_wrapper.dart';
 
 void main() async {
@@ -11,6 +13,9 @@ void main() async {
   await initializeDateFormatting();
 
   await SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
+
+  await Hive.initFlutter();
+  await Hive.openBox('selected_symbols');
 
   runApp(const MyApp());
 }
@@ -26,6 +31,7 @@ class MyApp extends StatelessWidget {
       splitScreenMode: true,
       builder: (context, child) {
         return MaterialApp(
+          navigatorKey: NavigationService.instance.navigatorKey,
           supportedLocales: const [Locale('tr', 'TR'), Locale('en', 'US')],
           localizationsDelegates: const [
             GlobalMaterialLocalizations.delegate,

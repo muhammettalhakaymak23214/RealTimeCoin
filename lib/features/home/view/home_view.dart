@@ -1,13 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:realtime_coin/core/constants/app_colors.dart';
-import 'package:realtime_coin/core/network/websocket_manager.dart';
+import 'package:realtime_coin/core/network/binance_websocket_manager.dart';
 import 'package:realtime_coin/core/utils/date_utils.dart';
 import 'package:realtime_coin/core/widgets/app_text.dart';
 import 'package:realtime_coin/features/home/service/home_service.dart';
 import 'package:realtime_coin/features/home/view_model/home_view_model.dart';
+import 'package:realtime_coin/features/home/widgets/coin_card_list_section.dart';
 import 'package:realtime_coin/features/home/widgets/title_card_section.dart';
-import 'package:realtime_coin/features/home_edit/view/home_edit_view.dart';
 
 class HomeView extends StatefulWidget {
   const HomeView({super.key});
@@ -56,13 +55,11 @@ class _HomeViewState extends State<HomeView> {
         leading: Icon(Icons.menu, color: Color.fromRGBO(247, 147, 26, 1)),
         actions: [
           IconButton(
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const HomeEditView()),
-              );
-            },
-            icon: Icon(Icons.edit, color: Color.fromRGBO(247, 147, 26, 1)),
+            onPressed: () => viewModel.navigateToEditAndRefresh(),
+            icon: const Icon(
+              Icons.edit,
+              color: Color.fromRGBO(247, 147, 26, 1),
+            ),
           ),
           SizedBox(width: 16),
           Icon(Icons.cabin, color: Color.fromRGBO(247, 147, 26, 1)),
@@ -76,171 +73,10 @@ class _HomeViewState extends State<HomeView> {
           ),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            child: const Divider(height: 1, color: _Constants.dividerColor),
+            child: const Divider(height: 1.5, color: _Constants.dividerColor),
           ),
           Expanded(
-            child: Observer(
-              builder: (context) {
-                final keys = viewModel.prices.keys.toList();
-                return Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 8,
-                    vertical: 0,
-                  ),
-                  child: ListView.separated(
-                    separatorBuilder: (context, index) {
-                      return SizedBox(height: 8);
-                    },
-                    itemCount: keys.length,
-                    itemBuilder: (context, index) {
-                      final symbol = keys[index];
-                      final timestamp = viewModel.updateTimes[symbol];
-                      final timeText = timestamp != null
-                          ? DateTime.fromMillisecondsSinceEpoch(
-                              timestamp,
-                            ).toString().substring(11, 19)
-                          : "--:--:--";
-
-                      final changeValue = viewModel.changes[symbol] ?? "0.000";
-                      final isNegative = changeValue.startsWith('-');
-
-                      return Card(
-                        color: Color.fromARGB(255, 247, 147, 26),
-                        child: ListTile(
-                          leading: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Text(
-                                symbol,
-                                style: TextStyle(
-                                  color: Color.fromARGB(255, 36, 22, 54),
-                                  fontSize: 16,
-                                ),
-                              ),
-
-                              Text(
-                                timeText,
-                                style: TextStyle(
-                                  color: Color.fromARGB(255, 36, 22, 54),
-                                  fontSize: 13,
-                                ),
-                              ),
-                            ],
-                          ),
-
-                          trailing: Container(
-                            // color: Colors.red,
-                            height: 50,
-                            width: 270,
-                            child: Row(
-                              crossAxisAlignment: CrossAxisAlignment.center,
-                              mainAxisAlignment: MainAxisAlignment.spaceAround,
-                              children: [
-                                Container(
-                                  height: 25,
-                                  width: 120,
-                                  decoration: BoxDecoration(
-                                    borderRadius: BorderRadius.circular(4),
-                                    color: Color.fromARGB(255, 36, 22, 54),
-                                    border: BoxBorder.all(
-                                      width: 0.5,
-                                      color: Color.fromARGB(255, 36, 22, 54),
-                                    ),
-                                  ),
-                                  child: Align(
-                                    alignment: AlignmentGeometry.center,
-                                    child: Text(
-                                      "${double.parse(viewModel.quoteVolumes[symbol] ?? "0").toStringAsFixed(0)} USDT",
-                                      style: TextStyle(
-                                        fontSize: 12,
-                                        color: Colors.grey[300],
-                                      ),
-                                    ),
-                                  ),
-                                ),
-
-                                Container(
-                                  height: 25,
-                                  width: 65,
-                                  decoration: BoxDecoration(
-                                    borderRadius: BorderRadius.circular(4),
-                                    // Dinamik renk burada: Negatifse kırmızı, pozitifse yeşil
-                                    color: isNegative
-                                        ? Colors.red
-                                        : Colors.green,
-                                    border: Border.all(
-                                      // BoxBorder değil, Border olacak
-                                      width: 0.5,
-                                      color: const Color.fromARGB(
-                                        255,
-                                        36,
-                                        22,
-                                        54,
-                                      ),
-                                    ),
-                                  ),
-                                  child: Center(
-                                    child: Text(
-                                      "%${changeValue.length > 5 ? changeValue.substring(0, 5) : changeValue.padRight(5, '0')}",
-                                      style: const TextStyle(
-                                        fontSize:
-                                            14, // 16 sığmayabilir, 14 daha güvenli
-                                        fontFamily: 'monospace',
-                                        color: Colors
-                                            .white, // Arka plan renkli olduğu için yazı beyaz olmalı
-                                      ),
-                                    ),
-                                  ),
-                                ),
-
-                                Container(
-                                  height: 25,
-                                  width:
-                                      65, // 8 karakter + padding için genişliği biraz artırdım
-                                  decoration: BoxDecoration(
-                                    borderRadius: BorderRadius.circular(4),
-                                    // Değişim negatifse kırmızı, değilse yeşil
-                                    color: isNegative
-                                        ? Colors.red
-                                        : Colors.green,
-                                    border: Border.all(
-                                      width: 0.5,
-                                      color: const Color.fromARGB(
-                                        255,
-                                        36,
-                                        22,
-                                        54,
-                                      ),
-                                    ),
-                                  ),
-                                  child: Center(
-                                    child: Text(
-                                      viewModel.prices[symbol] != null
-                                          ? viewModel.prices[symbol]!.length > 8
-                                                ? viewModel.prices[symbol]!
-                                                      .substring(0, 8)
-                                                : viewModel.prices[symbol]!
-                                                      .padRight(8, '0')
-                                          : "0.000000",
-                                      style: const TextStyle(
-                                        color: Colors.white,
-                                        fontFamily: 'monospace',
-                                        fontSize:
-                                            12, // 8 karakterin sığması için fontu hafif küçülttüm
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      );
-                    },
-                  ),
-                );
-              },
-            ),
+            child: CoinCardListSection(viewModel: viewModel), 
           ),
         ],
       ),
@@ -254,7 +90,7 @@ class _Constants {
 
   // Colors
   static const Color titleTextColor = AppColors.primary;
-  static const Color textColor = AppColors.textPrimary;
-  static const Color dividerColor = AppColors.primary;
+  static const Color dividerColor = AppColors.secondary;
   static const Color appBarBackgroundColor = AppColors.secondary;
+  
 }

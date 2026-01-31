@@ -8,7 +8,7 @@ class TitleCardSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Card(
-      color: AppColors.secondary,
+      color: _Constants.cardBackgroundColor,
       child: ListTile(
         leading: AppText(
           text: "Sembol",
@@ -70,4 +70,5 @@ class _Constants {
 
   // Colors
   static const Color titleTextColor = AppColors.primary;
+  static const Color cardBackgroundColor = AppColors.secondary;
 }
