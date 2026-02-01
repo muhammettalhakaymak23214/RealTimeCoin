@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:mobx/mobx.dart';
 import 'package:realtime_coin/core/services/cache/local_storage_service.dart';
+import 'package:realtime_coin/core/services/cache/settings_service.dart';
 import 'package:realtime_coin/core/services/navigation/navigation_service.dart';
 import 'package:realtime_coin/features/home_edit/view/home_edit_view.dart';
 import '../service/home_service.dart';
@@ -97,6 +98,21 @@ class HomeViewModel {
   
     stopStreaming();
     startStreaming();
+  }
+
+// 1. Observable değişkeni manuel oluşturuyoruz
+  final _isGridView = Observable<bool>(SettingsService.isGridView());
+  
+  // UI'dan kolay erişim için bir getter
+  bool get isGridView => _isGridView.value;
+
+  // 2. toggleView metodunu manuel action haline getiriyoruz
+  void toggleView() {
+    // runInAction: MobX'e "şu an bir state değişiyor, Observer'ları uyar" der.
+    runInAction(() {
+      _isGridView.value = !isGridView;
+      SettingsService.setGridView(_isGridView.value);
+    });
   }
 
 }

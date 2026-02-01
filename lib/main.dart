@@ -15,6 +15,7 @@ void main() async {
   await SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
 
   await Hive.initFlutter();
+  await Hive.openBox('settings');
   await Hive.openBox('selected_symbols');
 
   runApp(const MyApp());

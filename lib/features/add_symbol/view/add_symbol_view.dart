@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_mobx/flutter_mobx.dart'; 
 import 'package:realtime_coin/core/constants/app_colors.dart';
 import 'package:realtime_coin/core/services/cache/local_storage_service.dart';
 import 'package:realtime_coin/core/widgets/app_text.dart';
-import 'package:realtime_coin/features/add_symbol/service/binance_service.dart';
+import 'package:realtime_coin/features/add_symbol/view_model/add_symbol_view_model.dart'; 
+import 'package:realtime_coin/features/add_symbol/widgets/add_symbol_card.dart';
 
 class AddSymbolView extends StatefulWidget {
   const AddSymbolView({super.key});
@@ -12,88 +14,82 @@ class AddSymbolView extends StatefulWidget {
 }
 
 class _AddSymbolViewState extends State<AddSymbolView> {
-  final BinanceService _service = BinanceService();
+  late final AddSymbolViewModel _viewModel; 
+
+  @override
+  void initState() {
+    super.initState();
+    _viewModel = AddSymbolViewModel();
+    _viewModel.fetchAllSymbols();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: _Constants.appBarBackgroundColor,
         centerTitle: true,
-        iconTheme: IconThemeData(color: AppColors.primary),
+        iconTheme: const IconThemeData(color: _Constants.appBarIconsColor),
         title: AppText(
           text: "Sembol Ekle",
-          color: _Constants.titleTextColor,
+          color: _Constants.appBarTextColor,
           style: AppTextStyle.h2,
         ),
         bottom: PreferredSize(
-          preferredSize: Size.fromHeight(60),
+          preferredSize: const Size.fromHeight(60),
           child: Padding(
-            padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             child: TextField(
+              style: const TextStyle(color: AppColors.textPrimary),
+              cursorColor: AppColors.primary,
               decoration: InputDecoration(
-                hintText: "Search symbols (e.g. BTC, ETH)",
-                prefixIcon: const Icon(Icons.search),
+                hintText: "Sembol ara (ör: BTC, ETH)",
+                hintStyle: TextStyle(
+                  color: AppColors.textPrimary.withValues(alpha: 0.5),
+                  fontSize: 14,
+                ),
+                prefixIcon: const Icon(Icons.search, color: AppColors.primary),
                 filled: true,
-
-                contentPadding: EdgeInsets.symmetric(vertical: 0),
+                fillColor: AppColors.scaffoldBg,
+                contentPadding: const EdgeInsets.symmetric(vertical: 0, horizontal: 16),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: const BorderSide(color: AppColors.primary, width: 0.5),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: const BorderSide(color: AppColors.primary, width: 1.5),
+                ),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide
-                      .none, // Kenarlıkları kaldırıp modern görünüm sağla
                 ),
               ),
-              onChanged: (value) {
-                // Arama algoritmanı buraya gelecek
-              },
+              onChanged: _viewModel.filterSymbols, 
             ),
           ),
         ),
       ),
-      body: FutureBuilder<List<String>>(
-        future: _service.fetchSymbols(),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
+      body: Observer( 
+        builder: (_) {
+          if (_viewModel.isLoading.value) {
             return const Center(child: CircularProgressIndicator());
-          } else if (snapshot.hasError) {
-            return Center(child: Text('Hata: ${snapshot.error}'));
-          } else {
-            final symbols = snapshot.data ?? [];
-            return Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: ListView.builder(
-                itemCount: symbols.length,
-                itemBuilder: (context, index) {
-                  return Card(
-                    color: AppColors.cardBg,
-                    child: ListTile(
-                      title: AppText(
-                        text: symbols[index],
-                        color: AppColors.secondary,
-                        style: AppTextStyle.titleM,
-                        fontWeight: FontWeight.w900,
-                      ),
-                      trailing: InkWell(
-                        onTap: () {
-                          //////////
-                          LocalStorageService.instance.saveSymbol(symbols[index]);
-                        },
-                        child: Container(
-                          height: 25,
-                          width: 25,
-                          decoration: BoxDecoration(
-                            border: Border.all(width: 1 , color: AppColors.secondary),
-                            color: AppColors.error,
-                            borderRadius: BorderRadius.circular(50),
-                          ),
-                          child: const Icon(Icons.add , color: AppColors.textPrimary,),
-                        ),
-                      ),
-                    ),
-                  );
-                },
-              ),
-            );
           }
+          
+          return Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: ListView.builder(
+              itemCount: _viewModel.filteredSymbols.length,
+              itemBuilder: (context, index) {
+                final String currentSymbol = _viewModel.filteredSymbols[index];
+                return AddSymbolCard(
+                  symbol: currentSymbol,
+                  onAdd: () {
+                    LocalStorageService.instance.saveSymbol(currentSymbol);
+                  },
+                );
+              },
+            ),
+          );
         },
       ),
     );
@@ -103,9 +99,7 @@ class _AddSymbolViewState extends State<AddSymbolView> {
 @immutable
 class _Constants {
   const _Constants._();
-
-  // Colors
-  static const Color titleTextColor = AppColors.primary;
-  static const Color textColor = AppColors.textPrimary;
+  static const Color appBarTextColor = AppColors.primary;
+  static const Color appBarIconsColor = AppColors.primary;
   static const Color appBarBackgroundColor = AppColors.secondary;
 }

@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:realtime_coin/core/constants/app_colors.dart';
 import 'package:realtime_coin/core/network/binance_websocket_manager.dart';
 import 'package:realtime_coin/core/utils/date_utils.dart';
 import 'package:realtime_coin/core/widgets/app_text.dart';
 import 'package:realtime_coin/features/home/service/home_service.dart';
 import 'package:realtime_coin/features/home/view_model/home_view_model.dart';
+import 'package:realtime_coin/features/home/widgets/coin_card_grid_section.dart';
 import 'package:realtime_coin/features/home/widgets/coin_card_list_section.dart';
 import 'package:realtime_coin/features/home/widgets/title_card_section.dart';
 
@@ -52,17 +54,29 @@ class _HomeViewState extends State<HomeView> {
             ),
           ],
         ),
-        leading: Icon(Icons.menu, color: Color.fromRGBO(247, 147, 26, 1)),
+        leading: IconButton(
+          onPressed: () {},
+          icon: Icon(Icons.menu, color: _Constants.iconColor),
+        ),
         actions: [
           IconButton(
             onPressed: () => viewModel.navigateToEditAndRefresh(),
-            icon: const Icon(
-              Icons.edit,
-              color: Color.fromRGBO(247, 147, 26, 1),
+            style: IconButton.styleFrom(
+              overlayColor: Colors.orange.withValues(alpha: 0.2),
             ),
+            icon: const Icon(Icons.edit, color: _Constants.iconColor),
           ),
-          SizedBox(width: 16),
-          Icon(Icons.cabin, color: Color.fromRGBO(247, 147, 26, 1)),
+          Observer(
+            builder: (context) {
+              return IconButton(
+                onPressed: () => viewModel.toggleView(),
+                icon: Icon(
+                  viewModel.isGridView ? Icons.view_list : Icons.grid_view,
+                  color: _Constants.iconColor,
+                ),
+              );
+            },
+          ),
         ],
       ),
       body: Column(
@@ -76,7 +90,13 @@ class _HomeViewState extends State<HomeView> {
             child: const Divider(height: 1.5, color: _Constants.dividerColor),
           ),
           Expanded(
-            child: CoinCardListSection(viewModel: viewModel), 
+            child: Observer(
+              builder: (_) {
+                return viewModel.isGridView
+                    ? CoinCardGridSection(viewModel: viewModel)
+                    : CoinCardListSection(viewModel: viewModel);
+              },
+            ),
           ),
         ],
       ),
@@ -89,8 +109,8 @@ class _Constants {
   const _Constants._();
 
   // Colors
+  static const Color iconColor = AppColors.primary;
   static const Color titleTextColor = AppColors.primary;
   static const Color dividerColor = AppColors.secondary;
   static const Color appBarBackgroundColor = AppColors.secondary;
-  
 }
